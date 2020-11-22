@@ -11,7 +11,7 @@
 void display_char(int, int, unsigned char, uint16_t);
 void display_string(int, int, char [], int, uint16_t, bool);
 void update_screen(int, int, int, int);
-void draw_item(int, int, int, int, uint16_t, uint8_t*, bool);
+void draw_item(int, int, int, int, uint16_t, uint16_t*, bool);
 void erase_item(int, int, int ,int ,uint16_t, bool);
 
 
@@ -21,7 +21,7 @@ void erase_item(int, int, int ,int ,uint16_t, bool);
 extern uint16_t* fbp;
 extern struct fb_copyarea rect;
 extern int fbfd;
-
+extern uint16_t bird_map[];
 
 struct Game_frontscreen{
 	int id;

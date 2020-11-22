@@ -27,7 +27,7 @@ void update_screen(int x, int y, int width, int height){
 }
 
 
-void draw_item(int x, int y, int width, int height, uint16_t color, uint8_t* pixel_map, bool update)
+void draw_item(int x, int y, int width, int height, uint16_t color, uint16_t* pixel_map, bool update)
 {
 	/*Can draw any item
       For a simple box just add coordinates, width, height, color, and set pixel map to NULL
@@ -43,11 +43,13 @@ void draw_item(int x, int y, int width, int height, uint16_t color, uint8_t* pix
 		}
 	}
 	else{
-		printf("You're on the wrong side of town cowboy\n");
-		//insert pixel map function here
-		// very similar to previous, but will draw
-		// what is sent through the pixel map
-		// pointer
+		printf("Trying to draw bitmap\n");
+		for(int row_y = 0; row_y < height; row_y++){
+			for(int col_x = 0; col_x < width; col_x++){
+				if((pixel_map[row_y]<<col_x)&0x8000)
+					fbp[(col_x+x) + (row_y+y)*SCREEN_WIDTH] = color;
+			}
+		}
 	}
 	if(update)
 		update_screen(x, y, width, height);
@@ -91,7 +93,6 @@ void display_string(int x, int y, char string[], int length, uint16_t color, boo
 		(x,y) coordinates for the upper left corner
 		length is the number of chars in the string
 	*/
-	printf("Writing: %s\n", string);
 	int i = 0; // Defined outside of loop because i is used when function is done
 	for(; i < length;i++){
 		/*
