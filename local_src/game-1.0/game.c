@@ -36,7 +36,7 @@
 #define FRONTSCREEN_BACKGROUND_COLOR BLACK
 
 // Defines for player
-#define PLAYER_GRAVITY 1
+#define PLAYER_GRAVITY 2
 #define STARTPOSITION 80 // height the bird will spawn at
 #define BIRDPOSX SCREEN_WIDTH/4
 #define BIRDSIZE 16
@@ -46,9 +46,9 @@
 
 // Defines for pillars
 #define PILLAR_WIDTH 30
-#define DISTANCE_BETWEEN_PILLARS 180 //lowest distance for 3 pillars - 117
-#define PILLAR_GAP 90
-#define PILLAR_SPEED 2
+#define DISTANCE_BETWEEN_PILLARS 130 //lowest distance for 3 pillars - 117
+#define PILLAR_GAP 50
+#define PILLAR_SPEED 3
 
 /*Framebuffer variables*/
 int fbfd; 						//File open
@@ -175,7 +175,6 @@ int main(int argc, char *argv[]){
 			start_screen();
 		}
 	};
-	printf("Exiting");
 	draw_item(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK, NULL, true);
 	display_string(SCREEN_WIDTH/2 - 3*8, SCREEN_HEIGHT/3, "Bye Bye", 7, WHITE, true);// Lets draw something cool on exit
 
@@ -225,7 +224,6 @@ int collision()
 		1. Collision with frame of screen
 		2. Collision with pillars
 	*/
-	// printf("Checking collision \n");
 	if(player.position-BIRDSIZE/2 < 0 || player.position+BIRDSIZE/2 > SCREEN_HEIGHT){ // Top and bottom of screen
 
 		return -1;
@@ -343,7 +341,7 @@ void draw_pillar(int i)
 	int xpos;
 	int factor = 1;
 
-	if(game_play.pillars[i].x_position < 0){
+	if(game_play.pillars[i].x_position <= 0){
 		on_screen = PILLAR_WIDTH - abs(game_play.pillars[i].x_position); 
 		xpos = 0;
 	}else{
@@ -352,10 +350,10 @@ void draw_pillar(int i)
 	}
 	if(on_screen > 0 ){
 		//Pillar is on the screen
-		if(on_screen > PILLAR_WIDTH){
+		if(on_screen >= PILLAR_WIDTH){
 			//Entire pillar is on the screen
 			on_screen = PILLAR_WIDTH;
-		}else
+		}else if(xpos > 0)
 			factor = 0;
 		draw_item(xpos, 0, on_screen, game_play.pillars[i].y_gap_center-PILLAR_GAP/2, WHITE, NULL, false);
 		draw_item(xpos, game_play.pillars[i].y_gap_center+PILLAR_GAP/2, on_screen, SCREEN_HEIGHT - game_play.pillars[i].y_gap_center + PILLAR_GAP/2, WHITE, NULL, false);
@@ -440,7 +438,6 @@ void sigio_handler(int no)
 				Enter the screen of he link pushed.
 				Game screen, highscore, or exit the game
 			*/
-			printf("Trying to enter a screen\n");
 			switch(frontscreen.position){
 				case 0:
 					spawn_map();
@@ -515,7 +512,6 @@ void start_screen()
 		Initialize start screen.
 		Display the strings and backgrounds.
 	*/
-	printf("Start screen");
 	draw_item(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, FRONTSCREEN_BACKGROUND_COLOR, NULL, true);
 	display_string(SCREEN_WIDTH/2 -(13*8)/2, 1, "Flappy dog", 10, WHITE, false);
 	for(int i = 0; i < frontscreen.items; i++){
@@ -534,7 +530,6 @@ void spawn_map()
 		Initialize pillars
 		Draw player
 	*/
-	printf("Spawn map??\n");
 	draw_item(0, 0, SCREEN_WIDTH, SCREENBORDER, BLUE, NULL, false);
 	draw_item(0, SCREENBORDER, SCREEN_WIDTH, SCREEN_HEIGHT - SCREENBORDER, GREEN, NULL, false);
 	update_screen(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);

@@ -43,7 +43,6 @@ void draw_item(int x, int y, int width, int height, uint16_t color, uint16_t* pi
 		}
 	}
 	else{
-		printf("Trying to draw bitmap\n");
 		for(int row_y = 0; row_y < height; row_y++){
 			for(int col_x = 0; col_x < width; col_x++){
 				if((pixel_map[row_y]<<col_x)&0x8000)
