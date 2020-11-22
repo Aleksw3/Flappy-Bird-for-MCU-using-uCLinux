@@ -7,3 +7,5 @@
 !local_src/driver-gamepad-1.0/*
 !local_src/game-1.0/*
 !local_src/driver-gamepad-1.0/platform/*
+!./pictures/*
+!README.md
