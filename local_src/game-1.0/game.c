@@ -151,10 +151,8 @@ int main(int argc, char *argv[]){
 				curr_screen.id_current_screen = GAMEOVERSCREEN;
 			}
 			display_score();
-			// wait for game-tick timer wakeup, can use delay until timer is implemented
 		} else if(curr_screen.id_current_screen == GAMEOVERSCREEN) { 	// game over, freeze screen
 			// Write "Game Over" in the middle of the screen
-			printf("current screen is GAMEOVERSCREEN\n");
 			
 			display_string(SCREEN_WIDTH/2 - 9/2*8, SCREEN_HEIGHT/3+10, "Game Over", 9, WHITE, true);
 			display_string(SCREEN_WIDTH/2 - 27*8/2, SCREEN_HEIGHT/3+20, "Push any button to continue", 27, WHITE, true);
@@ -184,14 +182,6 @@ int main(int argc, char *argv[]){
 	exit(EXIT_SUCCESS);
 	return 0;
 }
-
-//void save_score()
-//{
-//	for(int i = 0;i<5;i++){
-
-
-//	}
-//}
 
 void score_screen()
 {

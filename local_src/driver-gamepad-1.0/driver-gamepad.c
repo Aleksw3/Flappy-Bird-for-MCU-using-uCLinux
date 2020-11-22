@@ -61,17 +61,19 @@ static int __init gamepad_init(void){
 	}
 
 	//request memory locations used for gpio bank PC
-	request_mem_region((resource_size_t)GPIO_PC_BASE+0x04,(resource_size_t)1,"GPIO_PC_MODEL\n");
-	request_mem_region((resource_size_t)GPIO_PC_BASE+0x1C,  (resource_size_t)1,"GPIO_PC_DIN\n");
-	request_mem_region((resource_size_t)GPIO_PC_BASE+0x0C, (resource_size_t)1,"GPIO_PC_DOUT\n");
+	request_mem_region((resource_size_t)GPIO_PC_BASE,(resource_size_t)0x20,"GPIO_PC_REGISTERS");
+	// request_mem_region((resource_size_t)GPIO_PC_BASE+0x04,(resource_size_t)1,"GPIO_PC_MODEL\n");
+	// request_mem_region((resource_size_t)GPIO_PC_BASE+0x1C,  (resource_size_t)1,"GPIO_PC_DIN\n");
+	// request_mem_region((resource_size_t)GPIO_PC_BASE+0x0C, (resource_size_t)1,"GPIO_PC_DOUT\n");
 
 	//request memory locations for interrupt registers
-	request_mem_region((resource_size_t)GPIO_PA_BASE+0x100, (resource_size_t)1,"GPIO_EXTIPSELL\n");
-	request_mem_region((resource_size_t)GPIO_PA_BASE+0x10C, (resource_size_t)1,"GPIO_EXTIFALL\n");
-	request_mem_region((resource_size_t)GPIO_PA_BASE+0x108, (resource_size_t)1,"GPIO_EXTIRISE\n");
-	request_mem_region((resource_size_t)GPIO_PA_BASE+0x110, (resource_size_t)1,"GPIO_IEN\n");
-	request_mem_region((resource_size_t)GPIO_PA_BASE+0x114, (resource_size_t)1,"GPIO_IF\n");
-	request_mem_region((resource_size_t)GPIO_PA_BASE+0x11C, (resource_size_t)1,"GPIO_IFC\n");
+	request_mem_region((resource_size_t)GPIO_PA_BASE+0x100,(resource_size_t)0x1C,"GPIO_PC_REGISTERS");
+	// request_mem_region((resource_size_t)GPIO_PA_BASE+0x100, (resource_size_t)1,"GPIO_EXTIPSELL\n");
+	// request_mem_region((resource_size_t)GPIO_PA_BASE+0x10C, (resource_size_t)1,"GPIO_EXTIFALL\n");
+	// request_mem_region((resource_size_t)GPIO_PA_BASE+0x108, (resource_size_t)1,"GPIO_EXTIRISE\n");
+	// request_mem_region((resource_size_t)GPIO_PA_BASE+0x110, (resource_size_t)1,"GPIO_IEN\n");
+	// request_mem_region((resource_size_t)GPIO_PA_BASE+0x114, (resource_size_t)1,"GPIO_IF\n");
+	// request_mem_region((resource_size_t)GPIO_PA_BASE+0x11C, (resource_size_t)1,"GPIO_IFC\n");
 
 	//Request interrupt channel so others cannot use it. 
 	//Should release when done. Similar concept as the reqeust_mem_region
@@ -127,23 +129,26 @@ static int __init gamepad_init(void){
 
 static void __exit gamepad_cleanup(void){
 	//Undo everything we did in init in reverse order
-	//Are we missing device_destroy(dev_ret something something)??
+	device_destroy(cl, dev_num);
 	class_destroy(cl);
 	cdev_del(&c_dev);
 
 	free_irq (GPIO_IRQ_EVEN, &c_dev);
 	free_irq (GPIO_IRQ_ODD, &c_dev);
 	
-	release_mem_region((resource_size_t)GPIO_PC_BASE+0x04,(resource_size_t)1);
-	release_mem_region((resource_size_t)GPIO_PC_BASE+0x1C,(resource_size_t)1);
-	release_mem_region((resource_size_t)GPIO_PC_BASE+0x0C,(resource_size_t)1);
+	// release_mem_region((resource_size_t)GPIO_PC_BASE+0x04,(resource_size_t)1);
+	// release_mem_region((resource_size_t)GPIO_PC_BASE+0x1C,(resource_size_t)1);
+	// release_mem_region((resource_size_t)GPIO_PC_BASE+0x0C,(resource_size_t)1);
 
-	release_mem_region((resource_size_t)GPIO_PA_BASE+0x100,(resource_size_t)1);
-	release_mem_region((resource_size_t)GPIO_PA_BASE+0x10C,(resource_size_t)1);
-	release_mem_region((resource_size_t)GPIO_PA_BASE+0x108,(resource_size_t)1);
-	release_mem_region((resource_size_t)GPIO_PA_BASE+0x110,(resource_size_t)1);
-	release_mem_region((resource_size_t)GPIO_PA_BASE+0x114,(resource_size_t)1);
-	release_mem_region((resource_size_t)GPIO_PA_BASE+0x11C,(resource_size_t)1);
+	// release_mem_region((resource_size_t)GPIO_PA_BASE+0x100,(resource_size_t)1);
+	// release_mem_region((resource_size_t)GPIO_PA_BASE+0x10C,(resource_size_t)1);
+	// release_mem_region((resource_size_t)GPIO_PA_BASE+0x108,(resource_size_t)1);
+	// release_mem_region((resource_size_t)GPIO_PA_BASE+0x110,(resource_size_t)1);
+	// release_mem_region((resource_size_t)GPIO_PA_BASE+0x114,(resource_size_t)1);
+	// release_mem_region((resource_size_t)GPIO_PA_BASE+0x11C,(resource_size_t)1);
+
+	release_mem_region((resource_size_t)GPIO_PA_BASE+0x100,(resource_size_t)0x1C);
+	release_mem_region((resource_size_t)GPIO_PC_BASE,(resource_size_t)0x20);
 
 	unregister_chrdev_region(dev_num, 1);
 }
