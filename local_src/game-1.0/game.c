@@ -176,9 +176,9 @@ int main(int argc, char *argv[]){
 		}
 	};
 	draw_item(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK, NULL, true);
-	display_string(SCREEN_WIDTH/2 - 3*8, SCREEN_HEIGHT/3, "Bye Bye", 7, WHITE, true);// Lets draw something cool on exit
+	display_string(SCREEN_WIDTH/2 - 3*8, SCREEN_HEIGHT/3, "Bye Bye", 7, WHITE, true);
 
-	// //Unmap and close file
+	//Unmap and close file
 	close(gpio);
 	munmap(fbp, resolution);
 	close(fbfd);
@@ -513,7 +513,7 @@ void start_screen()
 		Display the strings and backgrounds.
 	*/
 	draw_item(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, FRONTSCREEN_BACKGROUND_COLOR, NULL, true);
-	display_string(SCREEN_WIDTH/2 -(13*8)/2, 1, "Flappy dog", 10, WHITE, false);
+	display_string(SCREEN_WIDTH/2 -(13*8)/2, 1, "Flappy bird", 11, WHITE, false);
 	for(int i = 0; i < frontscreen.items; i++){
 		display_string(frontscreen.links[i].x,frontscreen.links[i].y,frontscreen.links[i].string,frontscreen.links[i].length, WHITE, false);
 		selected_background(frontscreen.links[i].x,frontscreen.links[i].y,frontscreen.links[i].length,frontscreen.links[i].status, false);
