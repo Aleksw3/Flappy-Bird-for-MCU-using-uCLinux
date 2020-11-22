@@ -1,6 +1,5 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
-// #include <unistd.h> 
 #include <linux/fs.h>
 #include <linux/err.h> //includes IS_ERR() macro
 #include <linux/interrupt.h>
@@ -23,7 +22,7 @@ static struct device *dev_ret;
 static struct fasync_struct* async_queue;
 static uint32_t gamepad_status = 0;
 
-/* struct cdev {  // This is defined in one of the libraries. THis is just for understanding and documentation
+/* struct cdev {  // This is defined in one of the libraries. This is just for understanding and documentation
     struct kobject kobj; 
     struct module *owner; 
     const struct file_operations *ops; 
@@ -49,7 +48,6 @@ struct file_operations gamepad_fops = { //implements functionality of the driver
 	.open    = gamepad_open,
 	.release = gamepad_release, 
 	.read    = gamepad_read,
-	// .write   = gamepad_write,
 	.fasync  = gamepad_fasync,
 };
 
@@ -62,18 +60,9 @@ static int __init gamepad_init(void){
 
 	//request memory locations used for gpio bank PC
 	request_mem_region((resource_size_t)GPIO_PC_BASE,(resource_size_t)0x20,"GPIO_PC_REGISTERS");
-	// request_mem_region((resource_size_t)GPIO_PC_BASE+0x04,(resource_size_t)1,"GPIO_PC_MODEL\n");
-	// request_mem_region((resource_size_t)GPIO_PC_BASE+0x1C,  (resource_size_t)1,"GPIO_PC_DIN\n");
-	// request_mem_region((resource_size_t)GPIO_PC_BASE+0x0C, (resource_size_t)1,"GPIO_PC_DOUT\n");
 
 	//request memory locations for interrupt registers
 	request_mem_region((resource_size_t)GPIO_PA_BASE+0x100,(resource_size_t)0x1C,"GPIO_PC_REGISTERS");
-	// request_mem_region((resource_size_t)GPIO_PA_BASE+0x100, (resource_size_t)1,"GPIO_EXTIPSELL\n");
-	// request_mem_region((resource_size_t)GPIO_PA_BASE+0x10C, (resource_size_t)1,"GPIO_EXTIFALL\n");
-	// request_mem_region((resource_size_t)GPIO_PA_BASE+0x108, (resource_size_t)1,"GPIO_EXTIRISE\n");
-	// request_mem_region((resource_size_t)GPIO_PA_BASE+0x110, (resource_size_t)1,"GPIO_IEN\n");
-	// request_mem_region((resource_size_t)GPIO_PA_BASE+0x114, (resource_size_t)1,"GPIO_IF\n");
-	// request_mem_region((resource_size_t)GPIO_PA_BASE+0x11C, (resource_size_t)1,"GPIO_IFC\n");
 
 	//Request interrupt channel so others cannot use it. 
 	//Should release when done. Similar concept as the reqeust_mem_region
@@ -122,7 +111,6 @@ static int __init gamepad_init(void){
 		return PTR_ERR(dev_ret);
 	}
 	//see comments at declaration for definition of cdev struct
-	printk(KERN_INFO "Driver initiated successfully\n");
 
 	return 0;
 }
@@ -136,16 +124,6 @@ static void __exit gamepad_cleanup(void){
 	free_irq (GPIO_IRQ_EVEN, &c_dev);
 	free_irq (GPIO_IRQ_ODD, &c_dev);
 	
-	// release_mem_region((resource_size_t)GPIO_PC_BASE+0x04,(resource_size_t)1);
-	// release_mem_region((resource_size_t)GPIO_PC_BASE+0x1C,(resource_size_t)1);
-	// release_mem_region((resource_size_t)GPIO_PC_BASE+0x0C,(resource_size_t)1);
-
-	// release_mem_region((resource_size_t)GPIO_PA_BASE+0x100,(resource_size_t)1);
-	// release_mem_region((resource_size_t)GPIO_PA_BASE+0x10C,(resource_size_t)1);
-	// release_mem_region((resource_size_t)GPIO_PA_BASE+0x108,(resource_size_t)1);
-	// release_mem_region((resource_size_t)GPIO_PA_BASE+0x110,(resource_size_t)1);
-	// release_mem_region((resource_size_t)GPIO_PA_BASE+0x114,(resource_size_t)1);
-	// release_mem_region((resource_size_t)GPIO_PA_BASE+0x11C,(resource_size_t)1);
 
 	release_mem_region((resource_size_t)GPIO_PA_BASE+0x100,(resource_size_t)0x1C);
 	release_mem_region((resource_size_t)GPIO_PC_BASE,(resource_size_t)0x20);
@@ -175,7 +153,6 @@ Fasync is called to add or remove entries from a queue. Saying that an
 event has occurred(?)
 */
 static irqreturn_t gamepad_interrupt_handler(int irq_no, void *dev_id, struct pt_regs* regs){
-	// printk(KERN_INFO "Interrupt detected in driver\n");
 	gamepad_status=~(ioread32(GPIO_PC_DIN)&0xFF);//read DIN
 	iowrite32(ioread32(GPIO_IF),GPIO_IFC);
 	if(async_queue)
@@ -196,5 +173,5 @@ static int gamepad_fasync(int fd, struct file* filp, int mode){
 module_init(gamepad_init);
 module_exit(gamepad_cleanup);
 
-MODULE_DESCRIPTION("Amazingness, I am god\n");
+MODULE_DESCRIPTION("Gamepad Driver\n");
 MODULE_LICENSE("GPL");
