@@ -64,6 +64,7 @@ struct Player{
 struct Game_highscore{
 	int id;
 	struct highscores{
+		int player_score_int;
 		char player_score_string[3];
 	} highscore[5];
 };

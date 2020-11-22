@@ -91,6 +91,7 @@ void display_string(int x, int y, char string[], int length, uint16_t color, boo
 		(x,y) coordinates for the upper left corner
 		length is the number of chars in the string
 	*/
+	printf("Writing: %s\n", string);
 	int i = 0; // Defined outside of loop because i is used when function is done
 	for(; i < length;i++){
 		/*

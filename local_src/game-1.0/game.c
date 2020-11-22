@@ -54,14 +54,9 @@
 int fbfd; 						//File open
 struct fb_var_screeninfo vinfo; //Can receive info about the screen - resolution
 uint16_t* fbp; 					//Memory mapping - 16 bits per pixel on the screen
-
-
 int resolution;
 
-
 enum direction{UP,DOWN,RIGHT,LEFT,ACTION} dir;
-
-
 
 /*GPIO variables*/
 int gpio; //File open
@@ -91,19 +86,18 @@ struct Game_play game_play = {
 	 }
 };
 struct Player player = {
-			STARTPOSITION,
+			STARTPOSITION, //y pos is at center of bird
 			0, // player's velocity
 			10, // player's boost
 			0, // game ticks since last button push
 };
 struct Game_highscore game_highscore = {
-		SCORESCREEN,
-		{
-			{"000"}, {"000"}, {"000"}, {"000"}, {"000"},
-		}
+	SCORESCREEN,
+ 	{
+		{0,"000"}, {0,"000"}, {0,"000"}, {0,"000"}, {0,"000"},
+	}
 };
 struct Game_over game_over = { GAMEOVERSCREEN };
-// struct Game_exit game_exit = { 0, };
 
 
 /*Function declarations*/
@@ -118,6 +112,8 @@ void draw_bird(int);
 void update_bird();
 void remove_bird(int);
 void display_score();
+void score_screen();
+void save_score();
 int collision();
 void init_pillar();
 void spawn_pillar();
@@ -140,11 +136,6 @@ int main(int argc, char *argv[]){
 
 	init_gpio();
 
-	//Set background and title
-	// draw_item(0,0, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK, NULL, true);
-	// usleep(5);
-
-
 	srand(time(0)); // Init of random gen for pillar generate
 	start_screen();
 	while(curr_screen.exit==false){
@@ -156,8 +147,7 @@ int main(int argc, char *argv[]){
 			update_pillar();
 			update_bird();
 			if (collision() != 0){ // check for collision. if not, update score
-				//save_score();
-				// printf("Collision detected\n");
+				save_score();
 				curr_screen.id_current_screen = GAMEOVERSCREEN;
 			}
 			display_score();
@@ -174,6 +164,11 @@ int main(int argc, char *argv[]){
 			player.velocity = 0;
 
 			while(curr_screen.id_current_screen == GAMEOVERSCREEN)
+				usleep(10); //small delayed needed for the variable to be able to change
+			start_screen();
+		} else if(curr_screen.id_current_screen == SCORESCREEN) {
+			score_screen();
+			while(curr_screen.id_current_screen == SCORESCREEN)
 				usleep(10); //small delayed needed for the variable to be able to change
 			start_screen();
 		}
@@ -197,6 +192,31 @@ int main(int argc, char *argv[]){
 
 //	}
 //}
+
+void score_screen()
+{
+	draw_item(0,0,vinfo.xres,vinfo.yres,BLACK,NULL, true); // Clean screen
+	display_string(SCREEN_WIDTH/2 - 10/2*8, SCREEN_HEIGHT/3-10,"Highscores",10, WHITE, true);
+	for(int i = 0;i<5;i++){ 
+		display_string(SCREEN_WIDTH/2 - 12, SCREEN_HEIGHT/3+10*i,game_highscore.highscore[i].player_score_string,3, WHITE, true);
+	}
+	display_string(SCREEN_WIDTH/2 - 26*8/2, SCREEN_HEIGHT/3+60, "Push any button to go back", 26, WHITE, true);
+}
+
+void save_score()
+{
+	for(int i = 0;i<5;i++){
+		if (game_play.player_score > game_highscore.highscore[i].player_score_int){ //check each highscore entry if new score is higher
+			for(int j = 0;j<4-i;j++){ // If new highscore is found, move [3] to [4], [2] to [3],etc to make space for new entry
+				game_highscore.highscore[4-j].player_score_int = game_highscore.highscore[3-j].player_score_int;
+				game_highscore.highscore[4-j].player_score_string = game_highscore.highscore[3-j].player_score_string;
+			}
+			game_highscore.highscore[i].player_score_int = game_play.player_score; //write new highscore entry
+			game_highscore.highscore[i].player_score_string = game_play.player_score_string;
+			return;
+		}
+	}
+}
 
 void display_score()
 {
@@ -488,6 +508,9 @@ void sigio_handler(int no)
 		*/
 		curr_screen.id_current_screen = FRONTSCREEN;
 		usleep(10);
+		return;
+	} else if(curr_screen.id_current_screen == SCORESCREEN){
+		curr_screen.id_current_screen = FRONTSCREEN;
 		return;
 	}
 
