@@ -56,6 +56,9 @@ struct fb_var_screeninfo vinfo; //Can receive info about the screen - resolution
 uint16_t* fbp; 					//Memory mapping - 16 bits per pixel on the screen
 int resolution;
 
+uint16_t bird_map[] = {0x0000,0x02F0,0x0C48,0x1084,0x788A,0x848A,0x8242,0x823F,0x4441,0x38BE,0x2042,0x183C,0x07C0,0x0000,0x0000,0x0000};
+uint16_t *pixel_map = bird_map;
+
 enum direction{UP,DOWN,RIGHT,LEFT,ACTION} dir;
 
 /*GPIO variables*/
@@ -145,12 +148,13 @@ int main(int argc, char *argv[]){
 			//  - add game-tick timer(https://developer.ibm.com/tutorials/l-timers-list/)?
 			usleep(GAME_TICK_TIME);
 			update_pillar();
+			display_score();
 			update_bird();
 			if (collision() != 0){ // check for collision. if not, update score
 				save_score();
 				curr_screen.id_current_screen = GAMEOVERSCREEN;
 			}
-			display_score();
+			
 			// wait for game-tick timer wakeup, can use delay until timer is implemented
 		} else if(curr_screen.id_current_screen == GAMEOVERSCREEN) { 	// game over, freeze screen
 			// Write "Game Over" in the middle of the screen
@@ -185,13 +189,6 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 
-//void save_score()
-//{
-//	for(int i = 0;i<5;i++){
-
-
-//	}
-//}
 
 void score_screen()
 {
@@ -209,10 +206,10 @@ void save_score()
 		if (game_play.player_score > game_highscore.highscore[i].player_score_int){ //check each highscore entry if new score is higher
 			for(int j = 0;j<4-i;j++){ // If new highscore is found, move [3] to [4], [2] to [3],etc to make space for new entry
 				game_highscore.highscore[4-j].player_score_int = game_highscore.highscore[3-j].player_score_int;
-				game_highscore.highscore[4-j].player_score_string = game_highscore.highscore[3-j].player_score_string;
+				strcpy(game_highscore.highscore[4-j].player_score_string, game_highscore.highscore[3-j].player_score_string);
 			}
 			game_highscore.highscore[i].player_score_int = game_play.player_score; //write new highscore entry
-			game_highscore.highscore[i].player_score_string = game_play.player_score_string;
+			strcpy(game_highscore.highscore[i].player_score_string, game_play.player_score_string);
 			return;
 		}
 	}
@@ -220,7 +217,8 @@ void save_score()
 
 void display_score()
 {
-	display_string(SCREEN_WIDTH-40, 10, game_play.player_score_string , 3*8, BLACK, true);
+	draw_item(SCREEN_WIDTH-41, 0, 3*8+2, 10, GRAY, NULL, true);
+	display_string(SCREEN_WIDTH-40, 1, game_play.player_score_string , 3, BLACK, true);
 }
 
 int collision()
@@ -252,10 +250,9 @@ int collision()
 			if(game_play.pillars[i].gave_score == 0){
 				game_play.pillars[i].gave_score = 1;
 				game_play.player_score += 1;
-				game_play.player_score_string[0] =  game_play.player_score % 10;
-				game_play.player_score_string[1] = (game_play.player_score % 100)/10;
-				game_play.player_score_string[2] =  game_play.player_score/100;
-				printf("Score updated\n");
+				game_play.player_score_string[2] = '0'+ (game_play.player_score % 10);
+				game_play.player_score_string[1] = '0'+ (game_play.player_score % 100)/10;
+				game_play.player_score_string[0] = '0'+ (game_play.player_score/100);
 			}
 		}
 	}
@@ -299,7 +296,7 @@ void update_pillar()
 		game_play.pillars[i].x_position -= PILLAR_SPEED;
 
 		//if pillar is outside of the screen, set position to right side and randomize gap
-		if(game_play.pillars[i].x_position+PILLAR_WIDTH <= 0)
+		if(game_play.pillars[i].x_position+PILLAR_WIDTH*2 < 0)
 			spawn_pillar(i,game_play.pillars[(i+5)%3].x_position + DISTANCE_BETWEEN_PILLARS);
 
 		draw_pillar(i);
@@ -311,10 +308,11 @@ void remove_pillar(int i){
 	//How much of the pillar is on screen
 	int on_screen;
 	int xpos;
-
+	int update = false;
 	if(game_play.pillars[i].x_position < 0){
-		on_screen = PILLAR_WIDTH - abs(game_play.pillars[i].x_position); 
+		on_screen = PILLAR_WIDTH - abs(game_play.pillars[i].x_position)+2; 
 		xpos = 0;
+		update = true;
 	}else{
 		on_screen = SCREEN_WIDTH - game_play.pillars[i].x_position; 
 		xpos = game_play.pillars[i].x_position;	
@@ -326,7 +324,7 @@ void remove_pillar(int i){
 			on_screen = PILLAR_WIDTH;
 		}
 		//remove uppermost pillar. Replace with blue
-		draw_item(xpos, 0, on_screen, game_play.pillars[i].y_gap_center-PILLAR_GAP/2, BLUE, NULL, false);
+		draw_item(xpos, 0, on_screen, game_play.pillars[i].y_gap_center-PILLAR_GAP/2+1, BLUE, NULL, update);
 
 
 		int blue_y =  game_play.pillars[i].y_gap_center+PILLAR_GAP/2;
@@ -336,10 +334,8 @@ void remove_pillar(int i){
 		int green_y = blue_y + blue_height;
 		int green_height = SCREEN_HEIGHT - green_y;
 
-		draw_item(xpos, blue_y, on_screen, blue_height, BLUE, NULL, false);
-		draw_item(xpos, green_y, on_screen, green_height, GREEN, NULL, false);
-		
-		update_screen(xpos, 0, on_screen + game_play.pillars[i].deltax, SCREEN_HEIGHT);
+		draw_item(xpos, blue_y, on_screen, blue_height, BLUE, NULL, update);
+		draw_item(xpos, green_y, on_screen, green_height, GREEN, NULL, update);
 	}
 }
 
@@ -348,6 +344,7 @@ void draw_pillar(int i)
 	//How much of the pillar is on screen
 	int on_screen;
 	int xpos;
+	int factor = 1;
 
 	if(game_play.pillars[i].x_position < 0){
 		on_screen = PILLAR_WIDTH - abs(game_play.pillars[i].x_position); 
@@ -361,10 +358,11 @@ void draw_pillar(int i)
 		if(on_screen > PILLAR_WIDTH){
 			//Entire pillar is on the screen
 			on_screen = PILLAR_WIDTH;
-		}
+		}else
+			factor = 0;
 		draw_item(xpos, 0, on_screen, game_play.pillars[i].y_gap_center-PILLAR_GAP/2, WHITE, NULL, false);
 		draw_item(xpos, game_play.pillars[i].y_gap_center+PILLAR_GAP/2, on_screen, SCREEN_HEIGHT - game_play.pillars[i].y_gap_center + PILLAR_GAP/2, WHITE, NULL, false);
-		update_screen(xpos, 0, on_screen + game_play.pillars[i].deltax, SCREEN_HEIGHT);
+		update_screen(xpos, 0, on_screen + game_play.pillars[i].deltax*factor, SCREEN_HEIGHT);
 	}
 }
 
@@ -450,23 +448,18 @@ void sigio_handler(int no)
 				case 0:
 					spawn_map();
 					game_play.player_score = 0;
-					//game_play.player_score_string[0] = '0';
-					//game_play.player_score_string[1] = '0';
-					//game_play.player_score_string[2] = '0';
 					memset(&game_play.player_score_string[0], 0, sizeof(game_play.player_score_string));
+					strcpy(game_play.player_score_string, "000");
 					curr_screen.id_current_screen = GAMESCREEN;
-					printf("Should've entered game now\n");
 					break;
 				case 1:
-					printf("Trying to enter scorescreen\n");
-					// curr_screen.id_current_screen = SCORESCREEN;
+					curr_screen.id_current_screen = SCORESCREEN;
 					break;
 				case 2:
-					printf("Trying to exit\n");
 					curr_screen.exit = true;
 					break;
 			}
-			usleep(10);
+			usleep(1);
 			return;
 		}else if(dir == UP || dir == DOWN){
 			/*
@@ -488,7 +481,7 @@ void sigio_handler(int no)
 			for(int i = 0;i<frontscreen.items;i++)
 				selected_background(frontscreen.links[i].x,frontscreen.links[i].y,frontscreen.links[i].length,frontscreen.links[i].status, true);
 
-			usleep(10);
+			usleep(1);
 			return;
 		}
 	} else if(curr_screen.id_current_screen == GAMESCREEN){
@@ -499,7 +492,7 @@ void sigio_handler(int no)
 		if(dir == ACTION){
 			player.velocity = 7;
 		}
-		usleep(10);
+		usleep(1);
 		return;
 	} else if(curr_screen.id_current_screen == GAMEOVERSCREEN){
 		/*
@@ -507,7 +500,7 @@ void sigio_handler(int no)
 			Wait for used to push button and return to frontscreen
 		*/
 		curr_screen.id_current_screen = FRONTSCREEN;
-		usleep(10);
+		usleep(1);
 		return;
 	} else if(curr_screen.id_current_screen == SCORESCREEN){
 		curr_screen.id_current_screen = FRONTSCREEN;
@@ -532,13 +525,9 @@ void start_screen()
 		display_string(frontscreen.links[i].x,frontscreen.links[i].y,frontscreen.links[i].string,frontscreen.links[i].length, WHITE, false);
 		selected_background(frontscreen.links[i].x,frontscreen.links[i].y,frontscreen.links[i].length,frontscreen.links[i].status, false);
 	}
-	// selected_background(frontscreen.links[0].x,frontscreen.links[0].y,frontscreen.links[0].length,1, false);
-	// selected_background(frontscreen.links[1].x,frontscreen.links[1].y,frontscreen.links[1].length,1, false);
-	// selected_background(frontscreen.links[2].x,frontscreen.links[2].y,frontscreen.links[2].length,1, false);
 	update_screen(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	curr_screen.id_current_screen = FRONTSCREEN;
 	curr_screen.exit = false;
-	frontscreen.position = 0;
 }
 
 void spawn_map()
@@ -577,11 +566,11 @@ void draw_bird(int pos_y)
 {	
 	// Check if the bird is going outside of the bounds
 	if(pos_y - BIRDHEIGHT / 2 < 0)
-		draw_item(BIRDPOSX, 0, BIRDWIDTH, BIRDHEIGHT/2 + pos_y, BLACK, NULL, true);
+		draw_item(BIRDPOSX, 0, BIRDWIDTH, BIRDHEIGHT/2 + pos_y, YELLOW, pixel_map, true);
 	else if(pos_y + BIRDHEIGHT / 2 > SCREEN_HEIGHT)
-		draw_item(BIRDPOSX, pos_y - BIRDHEIGHT / 2, BIRDWIDTH, BIRDHEIGHT/2 - (pos_y - SCREEN_HEIGHT), BLACK, NULL, true);
+		draw_item(BIRDPOSX, pos_y - BIRDHEIGHT / 2, BIRDWIDTH, BIRDHEIGHT/2 - (pos_y - SCREEN_HEIGHT), YELLOW, pixel_map, true);
 	else
-		draw_item(BIRDPOSX, pos_y - BIRDHEIGHT/2, BIRDWIDTH, BIRDHEIGHT, BLACK, NULL, true);
+		draw_item(BIRDPOSX, pos_y - BIRDHEIGHT/2, BIRDWIDTH, BIRDHEIGHT, YELLOW, pixel_map, true);
 }
 
 
