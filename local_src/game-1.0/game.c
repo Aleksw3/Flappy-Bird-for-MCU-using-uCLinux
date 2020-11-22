@@ -18,7 +18,7 @@
 #include <stdbool.h> // includes bool
 
 #include "colors.h"
-#include "function_def.h"
+#include "game_definitions.h"
 
 #define SCREEN_WIDTH  320
 #define SCREEN_HEIGHT 240
