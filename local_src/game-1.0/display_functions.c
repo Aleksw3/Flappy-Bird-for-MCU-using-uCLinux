@@ -7,7 +7,7 @@
 
 
 #include "font8x8.h"
-#include "function_def.h"
+#include "game_definitions.h"
 #include "colors.h"
 
 struct fb_copyarea rect; 		//Defines the area that is updated in the framebuffer
